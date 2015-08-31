@@ -2,7 +2,10 @@ package jp.ac.chibafjb.bbs0;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Scanner;
 
 import javax.servlet.ServletContext;
@@ -17,8 +20,19 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet("/Test01")
 public class Test01 extends HttpServlet {
+	private static final String TITLE = "練習サンプル1";
 	private static final long serialVersionUID = 1L;
-    private Oracle mOracle;   
+    private Oracle mOracle;  
+    
+    //タグの無効化
+    public static String CONVERT(String str)
+    {
+    	return 
+    		str.replaceAll("&","&amp;")
+    		.replaceAll("<","&gt;")
+    		.replaceAll(">","&lt;")
+    		.replaceAll("\n","<br>");
+    }
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -32,7 +46,7 @@ public class Test01 extends HttpServlet {
 		super.init();
 		
 		
-		try {
+		try{
 			ServletContext context = getServletConfig().getServletContext();
 			URL resource = context.getResource("/WEB-INF/db.txt");
 			InputStream stream = resource.openStream();
@@ -44,15 +58,19 @@ public class Test01 extends HttpServlet {
 			
 			mOracle = new Oracle();
 			mOracle.connect("ux4", id, pass);
-		} catch (Exception e) {
-			e.printStackTrace();
+			
+			//テーブルが無ければ作成
+			if(!mOracle.isTable("exam01"))
+				mOracle.execute("create table exam01(msg varchar(200))");
+			} catch (Exception e) {
+			System.err.println("db.txtにユーザ情報が設定されていない、もしくは認証に失敗しました");
 		}
 	}
 	
 	@Override
 	public void destroy() {
+		//DB切断
 		mOracle.close();
-		
 		// TODO 自動生成されたメソッド・スタブ
 		super.destroy();
 	}
@@ -63,14 +81,67 @@ public class Test01 extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		action(request,response);
 	}
 
 	/**
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		action(request,response);
 	}
+	protected void action(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        // 要求文字コードのセット(Javaプログラムからはき出す文字コード)
+        response.setCharacterEncoding("UTF-8");
+        // 応答文字コードのセット(クライアントに通知する文字コードとファイルの種類)
+        response.setContentType("text/html; charset=UTF-8");
 
+        // 出力ストリームの取得
+        PrintWriter out = response.getWriter();
+        
+        //パラメータにデータがあった場合はDBへ挿入
+        String param1 = request.getParameter("data1");
+        if (param1 != null && param1.length() > 0)
+        {
+        	//UTF8をJava文字列に変換
+        	String data1 = new String(param1.getBytes("ISO-8859-1"),"UTF-8");
+        	//SQL文の作成 Oracle.STRはシングルクオートのエスケープ処理
+        	String sql = String.format("insert into exam01 values('%s')",Oracle.STR(data1));
+        	//デバッグ用
+        	System.out.println("DEBUG:SQL文 "+sql);
+        	//DBにSQL文を実行させる
+        	mOracle.execute(sql);
+        }
+   		//開始部分の出力
+        out.format(
+        		"<!DOCTYPE html>\n"+
+        		"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"+
+        		"<head>\n"+
+        		"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n"+
+        		"<title>%s</title>\n"+
+        		"</head>\n"+
+        		"<body>\n" +
+        		"<form method=\"post\"><input type=\"submit\" value=\"送信\"><br>"+
+        		"<textarea name=\"data1\" rows=\"5\" cols=\"40\"></textarea></form>\n",TITLE);
+
+        //データの抽出
+        try {
+			ResultSet res = mOracle.query("select * from exam01");
+			while(res.next())
+			{
+				String data = res.getString(1);
+				if(data != null)
+				{
+					//CONVERTはタグの無効化
+					out.format("<hr>%s<BR>\n", CONVERT(data));					
+				}
+			}
+		} catch (SQLException e) {}
+        
+        //終了部分
+        out.format("</body>\n</html>\n");
+        //出力終了
+        out.close();
+
+	}
 }

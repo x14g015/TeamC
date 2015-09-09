@@ -90,6 +90,7 @@ public class Test01 extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		action(request,response);
 	}
+	
 	protected void action(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // 要求文字コードのセット(Javaプログラムからはき出す文字コード)
         response.setCharacterEncoding("UTF-8");
@@ -117,7 +118,10 @@ public class Test01 extends HttpServlet {
         ts.open(this, "Template.html");
         //タイトルの置換
         ts.replace("$(TITLE)", TITLE);
+        
+        //文字列保存用バッファの作成
         StringBuilder sb = new StringBuilder();
+
         //データの抽出
         try {
 			ResultSet res = mOracle.query("select * from exam01");
@@ -126,6 +130,7 @@ public class Test01 extends HttpServlet {
 				String data = res.getString(1);
 				if(data != null)
 				{
+					//文字列バッファにメッセージ内容を貯める
 					//CONVERTはタグの無効化
 					sb.append(String.format("<hr>%s<BR>\n", CONVERT(data)));
 				}
@@ -138,6 +143,5 @@ public class Test01 extends HttpServlet {
         out.print(ts.getText());
         //出力終了
         out.close();
-
 	}
 }

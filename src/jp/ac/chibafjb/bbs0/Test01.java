@@ -112,18 +112,12 @@ public class Test01 extends HttpServlet {
         	//DBにSQL文を実行させる
         	mOracle.execute(sql);
         }
-   		//開始部分の出力
-        out.format(
-        		"<!DOCTYPE html>\n"+
-        		"<html xmlns=\"http://www.w3.org/1999/xhtml\">\n"+
-        		"<head>\n"+
-        		"<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n"+
-        		"<title>%s</title>\n"+
-        		"</head>\n"+
-        		"<body>\n" +
-        		"<form method=\"post\"><input type=\"submit\" value=\"送信\"><br>"+
-        		"<textarea name=\"data1\" rows=\"5\" cols=\"40\"></textarea></form>\n",TITLE);
-
+        //テンプレートファイルを読む
+        TemplateString ts = new TemplateString();
+        ts.open(this, "Template.html");
+        //タイトルの置換
+        ts.replace("$(TITLE)", TITLE);
+        StringBuilder sb = new StringBuilder();
         //データの抽出
         try {
 			ResultSet res = mOracle.query("select * from exam01");
@@ -133,13 +127,15 @@ public class Test01 extends HttpServlet {
 				if(data != null)
 				{
 					//CONVERTはタグの無効化
-					out.format("<hr>%s<BR>\n", CONVERT(data));					
+					sb.append(String.format("<hr>%s<BR>\n", CONVERT(data)));
 				}
 			}
+			//メッセージの置換
+	        ts.replace("$(MSG)", sb.toString());			
 		} catch (SQLException e) {}
         
-        //終了部分
-        out.format("</body>\n</html>\n");
+        //内容の出力
+        out.print(ts.getText());
         //出力終了
         out.close();
 

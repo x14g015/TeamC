@@ -20,14 +20,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 @WebServlet("/Test01")
 public class Test01 extends HttpServlet {
-	private static final String TITLE = "練習サンプル1";
+	private static final String TITLE = "TeamC";
 	private static final long serialVersionUID = 1L;
-    private Oracle mOracle;  
-    
+    private Oracle mOracle;
+
     //タグの無効化
     public static String CONVERT(String str)
     {
-    	return 
+    	return
     		str.replaceAll("&","&amp;")
     		.replaceAll("<","&gt;")
     		.replaceAll(">","&lt;")
@@ -44,8 +44,8 @@ public class Test01 extends HttpServlet {
 	public void init() throws ServletException {
 		// TODO 自動生成されたメソッド・スタブ
 		super.init();
-		
-		
+
+
 		try{
 			ServletContext context = getServletConfig().getServletContext();
 			URL resource = context.getResource("/WEB-INF/db.txt");
@@ -55,10 +55,10 @@ public class Test01 extends HttpServlet {
 			String pass = sc.next();
 			sc.close();
 			stream.close();
-			
+
 			mOracle = new Oracle();
 			mOracle.connect("ux4", id, pass);
-			
+
 			//テーブルが無ければ作成
 			if(!mOracle.isTable("exam01"))
 				mOracle.execute("create table exam01(msg varchar(200))");
@@ -66,7 +66,7 @@ public class Test01 extends HttpServlet {
 			System.err.println("db.txtにユーザ情報が設定されていない、もしくは認証に失敗しました");
 		}
 	}
-	
+
 	@Override
 	public void destroy() {
 		//DB切断
@@ -90,7 +90,7 @@ public class Test01 extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		action(request,response);
 	}
-	
+
 	protected void action(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // 要求文字コードのセット(Javaプログラムからはき出す文字コード)
         response.setCharacterEncoding("UTF-8");
@@ -99,7 +99,7 @@ public class Test01 extends HttpServlet {
 
         // 出力ストリームの取得
         PrintWriter out = response.getWriter();
-        
+
         //パラメータにデータがあった場合はDBへ挿入
         String param1 = request.getParameter("data1");
         if (param1 != null && param1.length() > 0)
@@ -115,10 +115,10 @@ public class Test01 extends HttpServlet {
         }
         //テンプレートファイルを読む
         TemplateString ts = new TemplateString();
-        ts.open(this, "Template.html");
+        ts.open(this, "genru.html");
         //タイトルの置換
         ts.replace("$(TITLE)", TITLE);
-        
+
         //文字列保存用バッファの作成
         StringBuilder sb = new StringBuilder();
 
@@ -136,9 +136,9 @@ public class Test01 extends HttpServlet {
 				}
 			}
 			//メッセージの置換
-	        ts.replace("$(MSG)", sb.toString());			
+	        ts.replace("$(MSG)", sb.toString());
 		} catch (SQLException e) {}
-        
+
         //内容の出力
         out.print(ts.getText());
         //出力終了

@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServlet;
 
 public class TemplateString {
 	public String mTextData;
+	private BufferedReader br;
 
 	public boolean open(HttpServlet servlet, String fileName) {
 		File file = null;
@@ -17,7 +18,7 @@ public class TemplateString {
 					"/WEB-INF/" + fileName);
 			file = new File(path);
 			FileReader fileReader = new FileReader(file);
-			BufferedReader br = new BufferedReader(fileReader);
+			br = new BufferedReader(fileReader);
 
 			sb = new StringBuilder();
 			String str;

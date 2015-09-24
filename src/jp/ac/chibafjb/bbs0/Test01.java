@@ -115,7 +115,7 @@ public class Test01 extends HttpServlet {
         }
         //テンプレートファイルを読む
         TemplateString ts = new TemplateString();
-        ts.open(this, "genru.html");
+        ts.open(this, "thead.html");
         //タイトルの置換
         ts.replace("$(TITLE)", TITLE);
 

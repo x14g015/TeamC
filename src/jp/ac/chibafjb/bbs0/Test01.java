@@ -61,7 +61,7 @@ public class Test01 extends HttpServlet {
 
 			//テーブルが無ければ作成
 			if(!mOracle.isTable("exam01"))
-				mOracle.execute("create table exam01(msg varchar(200))");
+				mOracle.execute("create table exam01(NO number(), name varchar(200),msg varchar(200))");
 			} catch (Exception e) {
 			System.err.println("db.txtにユーザ情報が設定されていない、もしくは認証に失敗しました");
 		}

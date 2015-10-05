@@ -61,8 +61,9 @@ public class Test01 extends HttpServlet {
 
 			//テーブルが無ければ作成
 			if(!mOracle.isTable("exam01"))
-				mOracle.execute("create table exam01(NO number(), name varchar(200),msg varchar(200))");
-			} catch (Exception e) {
+				mOracle.execute("create table exam01(NO number, name varchar(200),msg varchar(200))");
+			 mOracle.execute("CREATE SEQUENCE  exam01_seq");
+		} catch (Exception e) {
 			System.err.println("db.txtにユーザ情報が設定されていない、もしくは認証に失敗しました");
 		}
 	}
@@ -101,13 +102,16 @@ public class Test01 extends HttpServlet {
         PrintWriter out = response.getWriter();
 
         //パラメータにデータがあった場合はDBへ挿入
-        String param1 = request.getParameter("data1");
-        if (param1 != null && param1.length() > 0)
+        String param = request.getParameter("data");
+        String param1 = request.getParameter("data1"); 
+        
+        if (param != null && param.length() > 0 && param1 != null && param1.length() > 0)
         {
         	//UTF8をJava文字列に変換
+        	String data = new String(param.getBytes("ISO-8859-1"),"UTF-8");
         	String data1 = new String(param1.getBytes("ISO-8859-1"),"UTF-8");
         	//SQL文の作成 Oracle.STRはシングルクオートのエスケープ処理
-        	String sql = String.format("insert into exam01 values('%s')",Oracle.STR(data1));
+        	String sql = String.format("insert into exam01 values (exam01_seq.nextval,'%s','%s')" ,Oracle.STR(data), Oracle.STR(data1));
         	//デバッグ用
         	System.out.println("DEBUG:SQL文 "+sql);
         	//DBにSQL文を実行させる
@@ -127,12 +131,14 @@ public class Test01 extends HttpServlet {
 			ResultSet res = mOracle.query("select * from exam01");
 			while(res.next())
 			{
-				String data = res.getString(1);
+				int id = res.getInt(1);
+				String data = res.getString(2);
+				String data1 = res.getString(3);
 				if(data != null)
 				{
 					//文字列バッファにメッセージ内容を貯める
 					//CONVERTはタグの無効化
-					sb.append(String.format("<hr>%s<BR>\n", CONVERT(data)));
+					sb.append(String.format("<hr>%d %s %s<BR>\n",id, CONVERT(data), CONVERT(data1)));
 				}
 			}
 			//メッセージの置換
